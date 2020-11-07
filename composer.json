@@ -1,0 +1,29 @@
+{
+    "name": "php-web-component/cli",
+    "description": "PHP Web Component CLI",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bagus A Priambada",
+            "email": "iam.adty@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "PWC\\": "core/",
+            "PWC\\CLI\\": "src/"
+        }
+    },
+    "require": {
+        "php-web-component/core": "dev-develop"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../core"
+        }
+    ]
+}
