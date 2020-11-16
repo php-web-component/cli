@@ -26,7 +26,7 @@ if (!is_null($rootDir)) {
     $cliDirs = $composerMap['PWC\\CLI\\'] ?? [];
 
     foreach ($cliDirs as $cliDir) {
-        \PWC\Util\File::recursive_read($cliDir, function ($file) use ($cliDir, $opt, $composer, $rootDir) {
+        \PWC\Util\File::recursiveRead($cliDir, function ($file) use ($cliDir, $opt, $composer, $rootDir) {
             $command = '\\PWC\\CLI' . str_replace('/', '\\', str_replace([
                 $cliDir, '.php'
             ], '', $file));
