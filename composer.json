@@ -17,13 +17,20 @@
             "PWC\\CLI\\": "src/"
         }
     },
+    "bin": "bin/pwc",
     "require": {
-        "php-web-component/core": "dev-develop"
+        "php-web-component/core": "dev-develop",
+        "php-web-component/util": "dev-develop",
+        "ulrichsg/getopt-php": "^3.4"
     },
     "repositories": [
         {
             "type": "path",
             "url": "../core"
+        },
+        {
+            "type": "path",
+            "url": "../util"
         }
     ]
 }

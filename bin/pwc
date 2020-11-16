@@ -1,0 +1,62 @@
+#!/usr/bin/env php
+<?php
+
+use GetOpt\GetOpt;
+use GetOpt\Option;
+
+$composer = null;
+$rootDir = null;
+if (file_exists(__DIR__ . '/../../../autoload.php')) {
+    $composer = include_once(__DIR__ . '/../../../autoload.php');
+    $rootDir = __DIR__ . '/../../../../';
+} elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    $composer = include_once(__DIR__ . '/../vendor/autoload.php');
+    $rootDir = __DIR__ . '/../';
+}
+
+if (!is_null($rootDir)) {
+    $opt = new GetOpt();
+    $opt->set(GetOpt::SETTING_SCRIPT_NAME, 'pwc');
+    $opt->addOptions([
+        Option::create(null, 'help', GetOpt::NO_ARGUMENT)->setDescription('Show this help')
+    ]);
+
+    $composerMap = array_merge($composer->getPrefixes(), $composer->getPrefixesPsr4(), $composer->getClassMap());
+
+    $cliDirs = $composerMap['PWC\\CLI\\'] ?? [];
+
+    foreach ($cliDirs as $cliDir) {
+        \PWC\Util\File::recursive_read($cliDir, function ($file) use ($cliDir, $opt, $composer, $rootDir) {
+            $command = '\\PWC\\CLI' . str_replace('/', '\\', str_replace([
+                $cliDir, '.php'
+            ], '', $file));
+
+            $opt->addCommand((new $command())->setConfig([
+                'rootDir' => $rootDir,
+                'composer' => $composer
+            ]));
+        });
+    }
+
+    try {
+        try {
+            $opt->process();
+        } catch (\GetOpt\ArgumentException\Missing $exception) {
+            if (!$opt->getOption('help')) {
+                throw $exception;
+            }
+        }
+    } catch (Exception $e) {
+        file_put_contents('php://stderr', $e->getMessage() . PHP_EOL);
+        echo PHP_EOL . $opt->getHelpText();
+        exit;
+    }
+
+    $command = $opt->getCommand();
+    if (!$command || $opt->getOption('help')) {
+        echo $opt->getHelpText();
+        exit;
+    }
+
+    call_user_func($command->getHandler(), $opt);
+}
