@@ -14,6 +14,11 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
     $rootDir = __DIR__ . '/../';
 }
 
+\PWC\Config::register(\PWC\Config\RootDir::class, $rootDir);
+\PWC\Config::register(\PWC\CLI\Config::class, [
+    'composerAutoload' => $composer
+]);
+
 if (!is_null($rootDir)) {
     $opt = new GetOpt();
     $opt->set(GetOpt::SETTING_SCRIPT_NAME, 'pwc');
@@ -26,15 +31,14 @@ if (!is_null($rootDir)) {
     $cliDirs = $composerMap['PWC\\CLI\\'] ?? [];
 
     foreach ($cliDirs as $cliDir) {
-        \PWC\Util\File::recursiveRead($cliDir, function ($file) use ($cliDir, $opt, $composer, $rootDir) {
+        \PWC\Util\File::recursiveRead($cliDir, function ($file) use ($cliDir, $opt) {
             $command = '\\PWC\\CLI' . str_replace('/', '\\', str_replace([
                 $cliDir, '.php'
             ], '', $file));
 
-            $opt->addCommand((new $command())->setConfig([
-                'rootDir' => $rootDir,
-                'composer' => $composer
-            ]));
+            if (is_subclass_of($command, \PWC\CLI::class)) {
+                $opt->addCommand((new $command()));
+            }
         });
     }
 
