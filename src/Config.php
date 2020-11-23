@@ -1,6 +1,8 @@
 <?php namespace PWC\CLI;
 
-class Config extends \PWC\Singleton\Config
+use PWC\Singleton\Config as SingletonConfig;
+
+class Config extends SingletonConfig
 {
     protected $composerAutoload = null;
 }

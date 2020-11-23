@@ -1,4 +1,6 @@
 <?php namespace PWC;
 
-class CLI extends \GetOpt\Command
+use GetOpt\Command;
+
+class CLI extends Command
 {}

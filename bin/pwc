@@ -1,66 +1,63 @@
 #!/usr/bin/env php
 <?php
 
+use GetOpt\ArgumentException\Missing;
 use GetOpt\GetOpt;
 use GetOpt\Option;
+use PWC\CLI;
+use PWC\CLI\Config as CLIConfig;
+use PWC\Config;
+use PWC\Config\RootDir;
+use PWC\Util\File;
 
-$composer = null;
-$rootDir = null;
-if (file_exists(__DIR__ . '/../../../autoload.php')) {
-    $composer = include_once(__DIR__ . '/../../../autoload.php');
-    $rootDir = __DIR__ . '/../../../../';
-} elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    $composer = include_once(__DIR__ . '/../vendor/autoload.php');
-    $rootDir = __DIR__ . '/../';
-}
+$rootDir = getcwd() . '/';
+$composer = include_once(getcwd() . '/vendor/autoload.php');
 
-\PWC\Config::register(\PWC\Config\RootDir::class, $rootDir);
-\PWC\Config::register(\PWC\CLI\Config::class, [
+Config::register(RootDir::class, $rootDir);
+Config::register(CLIConfig::class, [
     'composerAutoload' => $composer
 ]);
 
-if (!is_null($rootDir)) {
-    $opt = new GetOpt();
-    $opt->set(GetOpt::SETTING_SCRIPT_NAME, 'pwc');
-    $opt->addOptions([
-        Option::create(null, 'help', GetOpt::NO_ARGUMENT)->setDescription('Show this help')
-    ]);
+$opt = new GetOpt();
+$opt->set(GetOpt::SETTING_SCRIPT_NAME, 'pwc');
+$opt->addOptions([
+    Option::create(null, 'help', GetOpt::NO_ARGUMENT)->setDescription('Show this help')
+]);
 
-    $composerMap = array_merge($composer->getPrefixes(), $composer->getPrefixesPsr4(), $composer->getClassMap());
+$composerMap = array_merge($composer->getPrefixes(), $composer->getPrefixesPsr4(), $composer->getClassMap());
 
-    $cliDirs = $composerMap['PWC\\CLI\\'] ?? [];
+$cliDirs = $composerMap['PWC\\CLI\\'] ?? [];
 
-    foreach ($cliDirs as $cliDir) {
-        \PWC\Util\File::recursiveRead($cliDir, function ($file) use ($cliDir, $opt) {
-            $command = '\\PWC\\CLI' . str_replace('/', '\\', str_replace([
-                $cliDir, '.php'
-            ], '', $file));
+foreach ($cliDirs as $cliDir) {
+    File::recursiveRead($cliDir, function ($file) use ($cliDir, $opt) {
+        $command = '\\PWC\\CLI' . str_replace('/', '\\', str_replace([
+            $cliDir, '.php'
+        ], '', $file));
 
-            if (is_subclass_of($command, \PWC\CLI::class)) {
-                $opt->addCommand((new $command()));
-            }
-        });
-    }
-
-    try {
-        try {
-            $opt->process();
-        } catch (\GetOpt\ArgumentException\Missing $exception) {
-            if (!$opt->getOption('help')) {
-                throw $exception;
-            }
+        if (is_subclass_of($command, CLI::class)) {
+            $opt->addCommand((new $command()));
         }
-    } catch (Exception $e) {
-        file_put_contents('php://stderr', $e->getMessage() . PHP_EOL);
-        echo PHP_EOL . $opt->getHelpText();
-        exit;
-    }
-
-    $command = $opt->getCommand();
-    if (!$command || $opt->getOption('help')) {
-        echo $opt->getHelpText();
-        exit;
-    }
-
-    call_user_func($command->getHandler(), $opt);
+    });
 }
+
+try {
+    try {
+        $opt->process();
+    } catch (Missing $exception) {
+        if (!$opt->getOption('help')) {
+            throw $exception;
+        }
+    }
+} catch (Exception $e) {
+    file_put_contents('php://stderr', $e->getMessage() . PHP_EOL);
+    echo PHP_EOL . $opt->getHelpText();
+    exit;
+}
+
+$command = $opt->getCommand();
+if (!$command || $opt->getOption('help')) {
+    echo $opt->getHelpText();
+    exit;
+}
+
+call_user_func($command->getHandler(), $opt);
