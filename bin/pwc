@@ -7,15 +7,18 @@ use GetOpt\Option;
 use PWC\CLI;
 use PWC\CLI\Config as CLIConfig;
 use PWC\Config;
-use PWC\Config\RootDir;
+use PWC\Config\Application;
 use PWC\Util\File;
 
 $rootDir = getcwd() . '/';
 $composer = include_once(getcwd() . '/vendor/autoload.php');
 
-Config::register(RootDir::class, $rootDir);
 Config::register(CLIConfig::class, [
     'composerAutoload' => $composer
+]);
+
+Config::register(Application::class, [
+    'rootDir' => $rootDir
 ]);
 
 $opt = new GetOpt();
