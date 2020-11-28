@@ -18,22 +18,15 @@
         }
     },
     "bin": "bin/pwc",
+    "scripts": {
+        "pwc": "bin/pwc"
+    },
     "require": {
         "php-web-component/core": "dev-develop",
         "php-web-component/util": "dev-develop",
         "ulrichsg/getopt-php": "^3.4"
     },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "http://localhost/satis"
-        },
-        {
-            "type": "composer",
-            "url": "https://asset-packagist.org"
-        }
-    ],
-    "config": {
-        "secure-http": false
+    "require-dev": {
+        "kint-php/kint": "^3.3"
     }
 }
